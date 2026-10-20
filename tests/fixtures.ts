@@ -7,7 +7,12 @@ import { test as base, expect, Page } from '@playwright/test';
 // `loggedInPage` is a Page (and gives autocomplete inside tests).
 type MyFixtures = {
   loggedInPage: Page;
+  cartPage: Page;
 };
+
+// Products that the `cartPage` fixture puts into the cart.
+// Exported, so tests can check against the same list.
+export const CART_PRODUCTS = ['Sauce Labs Backpack', 'Sauce Labs Bike Light'];
 
 // `base.extend` creates a NEW `test` function that has all the built-in
 // fixtures (page, browser, context...) PLUS our own.
@@ -32,6 +37,26 @@ export const test = base.extend<MyFixtures>({
 
     // --- TEARDOWN: code after `use` runs after the test ---
     // Nothing to clean up: Playwright closes the page automatically.
+  },
+
+  // Fixtures can depend on OTHER custom fixtures. `cartPage` asks for
+  // `loggedInPage`, so Playwright first runs the login fixture, then this one.
+  // Login code is not repeated here - it is reused.
+  cartPage: async ({ loggedInPage: page }, use) => {
+    // Add every product from CART_PRODUCTS to the cart
+    for (const name of CART_PRODUCTS) {
+      await page
+        .locator('[data-test="inventory-item"]')
+        .filter({ hasText: name })
+        .getByRole('button', { name: 'Add to cart' })
+        .click();
+    }
+
+    // Open the cart page
+    await page.locator('[data-test="shopping-cart-link"]').click();
+    await expect(page).toHaveURL(/cart/);
+
+    await use(page);
   },
 });
 
