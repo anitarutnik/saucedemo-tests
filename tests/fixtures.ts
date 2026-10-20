@@ -3,6 +3,7 @@
 // `loggedInPage` and receives a page that is already logged in.
 import { test as base, expect, Page } from '@playwright/test';
 import { LoginPage } from '../pages/LoginPage';
+import { InventoryPage } from '../pages/InventoryPage';
 
 // Describe the TYPE of each custom fixture, so TypeScript knows that
 // `loggedInPage` is a Page (and gives autocomplete inside tests).
@@ -45,16 +46,13 @@ export const test = base.extend<MyFixtures>({
   // Login code is not repeated here - it is reused.
   cartPage: async ({ loggedInPage: page }, use) => {
     // Add every product from CART_PRODUCTS to the cart
+    const inventoryPage = new InventoryPage(page);
     for (const name of CART_PRODUCTS) {
-      await page
-        .locator('[data-test="inventory-item"]')
-        .filter({ hasText: name })
-        .getByRole('button', { name: 'Add to cart' })
-        .click();
+      await inventoryPage.addToCart(name);
     }
 
     // Open the cart page
-    await page.locator('[data-test="shopping-cart-link"]').click();
+    await inventoryPage.openCart();
     await expect(page).toHaveURL(/cart/);
 
     await use(page);
