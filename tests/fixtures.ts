@@ -2,6 +2,7 @@
 // Instead of repeating the login steps in every test, a test simply asks for
 // `loggedInPage` and receives a page that is already logged in.
 import { test as base, expect, Page } from '@playwright/test';
+import { LoginPage } from '../pages/LoginPage';
 
 // Describe the TYPE of each custom fixture, so TypeScript knows that
 // `loggedInPage` is a Page (and gives autocomplete inside tests).
@@ -23,10 +24,10 @@ export const test = base.extend<MyFixtures>({
   //  2. `use` - a function that hands the fixture value to the test
   loggedInPage: async ({ page }, use) => {
     // --- SETUP: runs before the test ---
-    await page.goto('/');
-    await page.getByPlaceholder('Username').fill('standard_user');
-    await page.getByPlaceholder('Password').fill('secret_sauce');
-    await page.getByRole('button', { name: 'Login' }).click();
+    // Login steps come from the LoginPage page object (no duplicated locators)
+    const loginPage = new LoginPage(page);
+    await loginPage.goto();
+    await loginPage.login('standard_user', 'secret_sauce');
 
     // Make sure login really worked; otherwise every test would fail
     // later with a confusing error far from the real cause
