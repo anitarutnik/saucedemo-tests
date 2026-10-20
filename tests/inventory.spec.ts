@@ -2,6 +2,7 @@
 // tests can use the custom `loggedInPage` fixture
 import { test, expect } from './fixtures';
 import { InventoryPage } from '../pages/InventoryPage';
+import { CartPage } from '../pages/CartPage';
 
 test.describe('Inventory', () => {
 
@@ -95,10 +96,9 @@ test.describe('Inventory', () => {
       await inventoryPage.openCart();
       await expect(page).toHaveURL(/cart/);
 
-      // The cart lists exactly those two products.
-      // (This is the cart page, so a CartPage page object will take this over.)
-      await expect(page.locator('[data-test="inventory-item-name"]'))
-        .toHaveText(['Sauce Labs Backpack', 'Sauce Labs Bike Light']);
+      // The cart lists exactly those two products (cart page -> CartPage)
+      const cart = new CartPage(page);
+      await expect(cart.itemNames).toHaveText(['Sauce Labs Backpack', 'Sauce Labs Bike Light']);
     });
   });
 });
